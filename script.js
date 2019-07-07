@@ -1,16 +1,24 @@
 let EMPTY = "";
 let boxes = [];
-let turn;
-let score;
+let playerSymbol = "X";
+let compSymbol = "O";
+let playerTurn;
 let moves;
 
 const getFieldSize = () => {
-    return Number(document.getElementById("input").value);
+    let number = Number(document.getElementById("input").value);
+
+    if (number < 3 || number > 100) {
+        document.getElementById("message").style.display='block'
+    } else {
+        document.getElementById("btn").disabled = true;
+        document.getElementById("message").style.display='none';
+        return number;
+    }
 };
 
 const drawField = () => {
     const board = document.createElement('table');
-    document.getElementById("btn").disabled = true;
 
     let identifier = 1;
 
@@ -43,23 +51,93 @@ const drawField = () => {
 };
 
 const startNewGame = () => {
-    score = {
-        "X": 0,
-        "O": 0
-    };
     moves = 0;
-    turn = "X";
+    playerTurn = true;
     boxes.forEach(function (square) {
         square.innerHTML = EMPTY;
     });
 };
 
-const win = (clicked) => {
-    const memberOf = clicked.className.split(/\s+/);
+function step() {
+    if (playerTurn) {
+        if (set(this)) {
+            if (win(this)) {
+                document.getElementById("modal").style.display='block';
+                document.getElementById("playerWin").style.display='block';
+            }
+            playerTurn = false;
+        }
+    } else {
+        if (win(computerTurn())) {
+            document.getElementById("modal").style.display='block';
+            document.getElementById("computerWin").style.display='block';
+        }
+        playerTurn = true;
+    }
+    moves += 1;
+    if (moves === getFieldSize() * getFieldSize()) {
+        document.getElementById("modal").style.display='block';
+        document.getElementById("draw").style.display='block';
+    }
+}
+
+function set(el) {
+    if (el.innerHTML !== EMPTY  ) {
+        return false;
+    }
+    el.innerHTML = playerSymbol;
+    return true;
+}
+
+function computerTurn() {
+    for (let i = 0; i < getFieldSize(); i++) {
+        for (let j = 0; j < getFieldSize(); j++) {
+            let el = document.getElementsByClassName(`col-${i} row-${j}`)[0];
+            if (el.innerHTML === EMPTY) {
+                if (isOneTurnWin(el, compSymbol)) {
+                    el.innerHTML = compSymbol;
+                    return el;
+                }
+            }
+        }
+    }
+    for (let i = 0; i < getFieldSize(); i++) {
+        for (let j = 0; j < getFieldSize(); j++) {
+            let el = document.getElementsByClassName(`col-${i} row-${j}`)[0];
+            if (el.innerHTML === EMPTY) {
+                if (isOneTurnWin(el, playerSymbol)) {
+                    el.innerHTML = compSymbol;
+                    return el;
+                }
+            }
+        }
+    }
+    while (true) {
+        let i = Math.floor(Math.random() * getFieldSize());
+        let j = Math.floor(Math.random() * getFieldSize());
+        let el = document.getElementsByClassName(`col-${i} row-${j}`)[0];
+        if (el.innerHTML === EMPTY) {
+            el.innerHTML = compSymbol;
+            return el;
+        }
+    }
+}
+
+function isOneTurnWin(el, symbol) {
+    el.innerHTML = symbol;
+    if (win(el)) {
+        return true;
+    } else {
+        el.innerHTML = EMPTY;
+    }
+    return false;
+}
+
+const win = (turnEl) => {
+    const memberOf = turnEl.className.split(/\s+/);
     for (let i = 0; i < memberOf.length; i++) {
         let testClass = '.' + memberOf[i];
-        let items = contains('#tictactoe ' + testClass, turn);
-
+        let items = contains('#tictactoe ' + testClass, turnEl.innerHTML);
         if (items.length === getFieldSize()) {
             return true;
         }
@@ -74,40 +152,6 @@ const contains = (selector, text) => {
     });
 };
 
-function step() {
-    if (turn === "X") {
-        set(this);
-        computerTurn();
-        moves += 2;
-    }
+const Reload = () => {
+    document.location.reload(true);
 };
-
-function computerTurn() {
-    let flag = true;
-    while (flag) {
-        let i = Math.floor(Math.random() * getFieldSize());
-        let j = Math.floor(Math.random() * getFieldSize());
-        let el = document.getElementsByClassName(`col-${i} row-${j}`)[0];
-        if (el.innerHTML === EMPTY) {
-            el.innerHTML = turn;
-            flag = false;
-        }
-    }
-    turn = "X";
-};
-
-function set(el) {
-    if (el.innerHTML !== EMPTY  ) {
-        return;
-    }
-    el.innerHTML = turn;
-    if (win(el)) {
-        alert('Winner: Player ' + turn);
-        startNewGame();
-    } else if (moves === getFieldSize() * getFieldSize()) {
-        alert("Draw");
-        startNewGame();
-    } else {
-        turn = "O";
-    }
-}

@@ -8,11 +8,22 @@
 <body>
 
     <form action="">
-        <input type="number" id="input">
+        <input type="number" min="3" max="100" step="1" id="input">
         <button type="button" id="btn" onclick="drawField()">Button</button>
+        <p id="message">Введите число от 3 до 100</p>
     </form>
 
     <div id="tictactoe"></div>
+
+    <div class="backdrop" id="modal">
+        <div class="modal">
+            <p id="playerWin">Поздравляем! Вы выиграли!</p>
+            <p id="computerWin">Печалька! Выиграл компьютер</p>
+            <p id="draw">Ничья</p>
+            <p>хотите начать новую игру?</p>
+            <button type="button" onclick="Reload()">да</button>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
