@@ -5,6 +5,7 @@ let compSymbol = "O";
 let playerTurn;
 let moves;
 
+//Создаем поле && проверяем введенное число на валидность && дизейблим кнопку
 const getFieldSize = () => {
     let number = Number(document.getElementById("input").value);
 
@@ -17,6 +18,8 @@ const getFieldSize = () => {
     }
 };
 
+
+//Рисуем поле, присваиваем классы к каждой ячейке таблицы
 const drawField = () => {
     const board = document.createElement('table');
 
@@ -50,6 +53,7 @@ const drawField = () => {
     startNewGame();
 };
 
+//Начинаем игру TODO: сделать функционал выбора очереди
 const startNewGame = () => {
     moves = 0;
     playerTurn = true;
@@ -58,72 +62,83 @@ const startNewGame = () => {
     });
 };
 
+const showModal = (winner) => {
+    document.getElementById("modal").style.display='block';
+    document.getElementById(winner).style.display='block';
+};
+
+//Считаем шаги, показываем модалку при выйигрыше или ничьей
 function step() {
     if (playerTurn) {
         if (set(this)) {
             if (win(this)) {
-                document.getElementById("modal").style.display='block';
-                document.getElementById("playerWin").style.display='block';
+                showModal("playerWin");
             }
             playerTurn = false;
         }
     } else {
         if (win(computerTurn())) {
-            document.getElementById("modal").style.display='block';
-            document.getElementById("computerWin").style.display='block';
+            showModal("computerWin");
         }
         playerTurn = true;
     }
     moves += 1;
     if (moves === getFieldSize() * getFieldSize()) {
-        document.getElementById("modal").style.display='block';
-        document.getElementById("draw").style.display='block';
+        showModal("draw");
     }
-}
+};
 
-function set(el) {
+const set = (el) => {
     if (el.innerHTML !== EMPTY  ) {
         return false;
     }
     el.innerHTML = playerSymbol;
     return true;
-}
+};
 
-function computerTurn() {
+const findEl = (x, y) =>{
+    return document.getElementsByClassName(`col-${x} row-${y}`)[0];
+};
+
+const computerTurn = () => {
+    //Комп проверяет может ли он выиграть
     for (let i = 0; i < getFieldSize(); i++) {
         for (let j = 0; j < getFieldSize(); j++) {
-            let el = document.getElementsByClassName(`col-${i} row-${j}`)[0];
+            let el = findEl(i, j);
             if (el.innerHTML === EMPTY) {
-                if (isOneTurnWin(el, compSymbol)) {
+                if (winTurn(el, compSymbol)) {
                     el.innerHTML = compSymbol;
                     return el;
                 }
             }
         }
     }
+    //Комп проверяет может ли выиграть соперник
     for (let i = 0; i < getFieldSize(); i++) {
         for (let j = 0; j < getFieldSize(); j++) {
-            let el = document.getElementsByClassName(`col-${i} row-${j}`)[0];
+            let el = findEl(i, j);
             if (el.innerHTML === EMPTY) {
-                if (isOneTurnWin(el, playerSymbol)) {
+                if (winTurn(el, playerSymbol)) {
                     el.innerHTML = compSymbol;
                     return el;
                 }
             }
         }
     }
+    // Если следущим ходом никто не побеждает, комп делает ход на рандоме
     while (true) {
         let i = Math.floor(Math.random() * getFieldSize());
         let j = Math.floor(Math.random() * getFieldSize());
-        let el = document.getElementsByClassName(`col-${i} row-${j}`)[0];
+        let el = findEl(i, j);
         if (el.innerHTML === EMPTY) {
             el.innerHTML = compSymbol;
             return el;
         }
     }
-}
+};
 
-function isOneTurnWin(el, symbol) {
+//Расчет победного шага для компа
+const winTurn = (el, symbol) => {
     el.innerHTML = symbol;
     if (win(el)) {
         return true;
@@ -131,8 +146,9 @@ function isOneTurnWin(el, symbol) {
         el.innerHTML = EMPTY;
     }
     return false;
-}
+};
 
+//Проверяет текущий ход на победу
 const win = (turnEl) => {
     const memberOf = turnEl.className.split(/\s+/);
     for (let i = 0; i < memberOf.length; i++) {
@@ -145,13 +161,15 @@ const win = (turnEl) => {
     return false;
 };
 
-const contains = (selector, text) => {
+//Возвращает массив элементов содержащих символ
+const contains = (selector, symbol) => {
     let elements = document.querySelectorAll(selector);
     return [].filter.call(elements, function(element){
-        return RegExp(text).test(element.textContent);
+        return RegExp(symbol).test(element.textContent);
     });
 };
 
+//Перезагружаем окно дяя новой игры после выиграша
 const Reload = () => {
     document.location.reload(true);
 };
